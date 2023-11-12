@@ -1,0 +1,523 @@
+* Environment
+** Aliases
+#+BEGIN_SRC emacs-lisp
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+** Packages
+#+BEGIN_SRC emacs-lisp
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+  (require 'use-package)
+
+  (use-package docker
+    :ensure t)
+
+  (use-package diminish
+    :ensure t)
+
+  (use-package color-theme-sanityinc-tomorrow
+    :ensure t
+    :init
+    (setq-default custom-safe-themes(quote("bb08c73af94ee74453c90422485b29e5643b73b05e8de029a6909af6a3fb3f58" default)))
+    :config
+    (load-theme 'sanityinc-tomorrow-blue t))
+
+  (use-package undo-fu
+    :ensure t)
+
+  (use-package evil
+    :ensure t
+    :config
+    (evil-mode t)
+    (evil-set-undo-system 'undo-fu))
+
+  (use-package ivy
+    :ensure t
+    :config
+    (ivy-mode t))
+
+  (use-package ido-vertical-mode
+    :ensure t
+    :config
+    (ido-vertical-mode t))
+
+  (use-package imenu
+    :ensure t
+    :bind
+    ("C-c m" . imenu))
+
+  (use-package sudo-edit
+    :ensure t
+    :bind 
+    ("C-c e" . sudo-edit))
+
+  (use-package magit
+    :ensure t
+    :custom
+    (magit-auto-revert-mode nil)
+    :bind
+    ("M-g s" . magit-status))
+
+  (use-package popwin
+    :ensure t
+    :config
+    (popwin-mode 1))
+
+  (use-package neotree
+    :ensure t
+    :config
+    (defun neotree-project-dir ()
+      "Open NeoTree using the git root."
+      (interactive)
+      (let ((project-dir (projectile-project-root))
+            (file-name (buffer-file-name)))
+        (neotree-toggle)
+        (if project-dir
+            (if (neo-global--window-exists-p)
+                (progn
+                  (neotree-dir project-dir)
+                  (neotree-find file-name)))
+          (message "Could not find git project root."))))
+    ;; Keybinding
+    (global-set-key [f8] 'neotree-project-dir)
+    ;; More keybindings
+    (add-hook 'neotree-mode-hook
+              (lambda ()
+                (define-key evil-normal-state-local-map (kbd "TAB") 'neotree-enter)
+                (define-key evil-normal-state-local-map (kbd "SPC") 'neotree-quick-look)
+                (define-key evil-normal-state-local-map (kbd "q") 'neotree-hide)
+                (define-key evil-normal-state-local-map (kbd "RET") 'neotree-enter)
+                (define-key evil-normal-state-local-map (kbd "g") 'neotree-refresh)
+                (define-key evil-normal-state-local-map (kbd "n") 'neotree-next-line)
+                (define-key evil-normal-state-local-map (kbd "p") 'neotree-previous-line)
+                (define-key evil-normal-state-local-map (kbd "A") 'neotree-stretch-toggle)
+                (define-key evil-normal-state-local-map (kbd "H") 'neotree-hidden-file-toggle))))
+
+  (use-package projectile
+    :ensure t
+    :bind-keymap
+    ("C-c p" . projectile-command-map)
+    :bind
+    ("M-o p" . counsel-projectile-switch-project)
+    ("C-c C-v" . projectile-compile-project)
+    :init
+    (setq-default projectile-completion-system 'ivy)
+    :config
+    (projectile-mode))
+
+  (use-package yasnippet
+    :ensure t
+    :init
+    (yas-global-mode t))
+
+  (use-package yasnippet-snippets
+    :ensure t)
+
+  (use-package golden-ratio
+    :ensure t
+    :config
+    (golden-ratio-mode t))
+
+  (defun switch-to-window-and-adjust-size()
+    "Switch window using shortcuts and correctly resize window frames"
+    (interactive)
+    (switch-window)
+    (golden-ratio))
+
+  (use-package switch-window
+    :ensure t
+    :bind
+    ("C-x p" . switch-to-window-and-adjust-size))
+#+END_SRC
+** Server
+#+BEGIN_SRC emacs-lisp
+  ;; Run emacs as a server
+  (server-start)
+#+END_SRC
+** Keybindings
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-c h") 'eshell-command)
+#+END_SRC
+** Options-directories
+#+BEGIN_SRC emacs-lisp
+  ;; Sets backup directory
+  (setq-default backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
+#+END_SRC
+** Options-gui
+#+BEGIN_SRC emacs-lisp
+  ;; Disable tool bar
+  (tool-bar-mode -1)
+  (setq-default tool-bar-mode nil)
+  ;; Disable scroll bars
+  (scroll-bar-mode -1)
+  (setq-default scroll-conservatively 100)
+  ;; Set font
+  (set-frame-font "Inconsolata 12" t)
+#+END_SRC
+* Editor
+** Packages
+#+BEGIN_SRC emacs-lisp
+  (use-package avy
+    :ensure t
+    :bind
+    (("C-c g" . avy-goto-char)
+     ("C-c C-g" . avy-goto-char-2)))
+
+  (use-package browse-kill-ring
+    :ensure t
+    :init
+    (browse-kill-ring-default-keybindings))
+
+  (use-package projectile
+    :ensure t
+    :bind-keymap
+    ("C-c p" . projectile-command-map)
+    :init
+    (setq-default projectile-completion-system 'ivy)
+    :config
+    (projectile-mode))
+
+  (use-package counsel
+    :ensure t
+    :defines
+    (projectile-completion-system magit-completing-read-function) 
+    :config
+    (counsel-mode t))
+
+  (use-package counsel-projectile
+    :ensure t)
+
+  (use-package swiper
+    :ensure t
+    :init
+    (setq-default swiper-include-line-number-in-search t)
+    :bind 
+    ("M-s" . swiper))
+
+  (use-package rainbow-mode
+    :ensure t
+    :diminish
+    :hook (emacs-lisp-mode . rainbow-mode))
+#+END_SRC
+** Options
+#+BEGIN_SRC emacs-lisp
+  ;; [options] set cursor
+  (setq-default cursor-type (quote (bar . 1)))
+
+  ;; [options] ansi-color translates escape sequences into faces 
+  (setq-default ansi-color-faces-vector
+                [default bold shadow italic underline bold bold-italic bold])
+  (setq-default ansi-color-names-vector
+                (vector "#003f8e" "#ff9da4" "#d1f1a9" "#ffeead" "#bbdaff" "#ebbbff" "#99ffff" "#ffffff"))
+
+  ;; [options] fill-column indicator
+  (setq-default fci-rule-color "#003f8e")
+  (setq-default fci-rule-width 1)
+  (setq-default fci-rule-column 80)
+
+  ;; [options] auto-save
+  (setq-default auto-save-default nil)
+
+  ;; [options] position
+  (setq-default column-number-mode t)
+
+  ;; [options] indentation
+  (setq-default tab-always-indent t)
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 4)
+
+  ;; [options] parentheses
+  (show-paren-mode)
+  (setq-default show-paren-delay 0)
+
+  ;; [options] whitespace
+  (global-whitespace-mode t)
+  (setq-default whitespace-style (quote (trailing lines lines-tail empty big-indent space-mark tab-mark)))
+  (setq-default tab-width 4)
+
+  ;; [options] vc-mode
+  (setq-default vc-annotate-color-map
+                (quote
+                 ((20 . "#ff9da4")
+                  (40 . "#ffc58f")
+                  (60 . "#ffeead")
+                  (80 . "#d1f1a9")
+                  (100 . "#99ffff")
+                  (120 . "#bbdaff")
+                  (140 . "#ebbbff")
+                  (160 . "#ff9da4")
+                  (180 . "#ffc58f")
+                  (200 . "#ffeead")
+                  (220 . "#d1f1a9")
+                  (240 . "#99ffff")
+                  (260 . "#bbdaff")
+                  (280 . "#ebbbff")
+                  (300 . "#ff9da4")
+                  (320 . "#ffc58f")
+                  (340 . "#ffeead")
+                  (360 . "#d1f1a9"))))
+  (setq-default vc-annotate-very-old-color nil)
+#+END_SRC
+** Keybindings
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-c v") 'eval-buffer)
+
+  (global-set-key (kbd "C-;") 'delete-backward-char)
+
+  (global-set-key (kbd "C-c s") 'replace-string)
+
+  (global-set-key (kbd "C-c C-c") 'comment-region)
+  (global-set-key (kbd "C-c C-u") 'uncomment-region)
+
+  (defun smarter-move-beginning-of-line (arg)
+    "Move point back to indentation of beginning of line.
+
+    Move point to the first non-whitespace character on this line.
+    If point is already there, move to the beginning of the line.
+    Effectively toggle between the first non-whitespace character and
+    the beginning of the line.
+
+    If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+    point reaches the beginning or end of the buffer, stop there."
+    (interactive "^p")
+    (setq-default arg (or arg 1))
+
+    ;; Move lines first
+    (when (/= arg 1)
+      (let ((line-move-visual nil))
+        (forward-line (1- arg))))
+
+    (let ((orig-point (point)))
+      (back-to-indentation)
+      (when (= orig-point (point))
+        (move-beginning-of-line 1))))
+
+  (global-set-key [remap move-beginning-of-line]
+                  'smarter-move-beginning-of-line)
+#+END_SRC
+* Org
+** Bullets
+#+BEGIN_SRC emacs-lisp
+  (use-package org-bullets
+    :ensure t
+    :init
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
+  (setq org-src-tab-acts-natively t)
+#+END_SRC
+* Programming
+** ASM-mode
+#+BEGIN_SRC emacs-lisp
+  ;; Inits asm ide
+  (defun asm-programming-hooks ()
+    "Setup hooks for assembly mode"
+    (use-package nasm-mode
+      :ensure t
+      :config
+      (nasm-mode t)))
+  (add-hook 'asm-mode-hook 'asm-programming-hooks)
+#+END_SRC
+** CC-mode
+#+BEGIN_SRC emacs-lisp
+  ;; Inits c/c++ ide
+  (defun cc-programming-ide ()
+    "Setup ide functionality for c/c++"
+
+    (use-package flycheck
+      :ensure t
+      :init
+      (setq-default flycheck-color-mode-line-face-to-color (quote mode-line-buffer-id))
+      :config
+      (flycheck-mode))
+
+    (use-package cuda-mode
+      :ensure t)
+    (add-hook 'cuda-mode-hook (lambda () (flycheck-cuda-include-path (list "."))))
+
+    (use-package irony
+      :ensure t)
+    (push 'cuda-mode irony-supported-major-modes)
+
+    (use-package company
+      :ensure t
+      :init
+      (define-key c-mode-base-map (kbd "<C-tab>") (function company-complete))
+      :config
+      (company-mode))
+
+    (use-package lsp-mode
+      :ensure t
+      :init
+      ;; Set prefix for lsp-command-keymap
+      (setq lsp-keymap-prefix "C-c l")
+      (setq clang-format-fallback-style "none")
+      (setq clang-format-style "file")
+      :hook
+      ((c-mode . lsp)
+       (cpp-mode . lsp)
+       (lsp-mode . lsp-enable-which-key-integration))
+      :commands
+      lsp)
+
+    (use-package lsp-ui
+      :ensure t
+      :commands
+      lsp-ui-mode)
+
+    (use-package lsp-ivy
+      :ensure t
+      :commands
+      lsp-ivy-workspace-symbol)
+
+    (use-package lsp-treemacs
+      :ensure t
+      :commands
+      lsp-treemacs-errors-list)
+
+    (use-package dap-mode
+      :defer
+      :custom
+      (dap-auto-configure-mode t
+                               "Automatically configure dap.")
+      (dap-auto-configure-features
+       '(sessions locals breakpoints expressions tooltip)
+       "Remove the button panel in the top.")
+      :config
+      ;; c++
+      (require 'dap-lldb)
+      (setq dap-lldb-debug-program '("/usr/bin/lldb-vscode"))
+      (setq dap-lldb-debugged-program-function (lambda () (read-file-name "Select file to debug.")))
+
+      ;; default debug template
+      (dap-register-debug-template
+       "C++ LLDB dap"
+       (list :type "lldb-vscode"
+             :cwd nil
+             :args nil
+             :request "launch"
+             :program nil))
+
+      (defun dap-debug-create-or-edit-json-template ()
+        "Edit the C++ debugging configuration or create + edit if none exists yet."
+        (interactive)
+        (let ((filename (concat (lsp-workspace-root) "/launch.json"))
+              (default "~/.emacs.d/default-launch.json"))
+          (unless (file-exists-p filename)
+            (copy-file default filename))
+          (find-file-existing filename))))
+
+    (use-package which-key
+      :ensure t
+      :config
+      (which-key-mode))
+
+    (lsp))
+
+  (defun cc-programming-hooks ()
+    "C/C++ mode setup"
+
+    (require 'cc-mode)
+
+    ;; Set style settings
+    (c-set-style "stroustrup")
+    (c-set-offset (quote brace-list-open) 0)
+    (c-set-offset (quote brace-list-entry) 0 nil)
+    (c-set-offset (quote case-label) 4 nil)
+
+    ;; Enable code folding
+    (hs-minor-mode)
+    (define-key c-mode-base-map (kbd "C-c C-f") (function hs-hide-block))
+    (define-key c-mode-base-map (kbd "C-c C-r") (function hs-show-block))
+    ;; Initialize ide tools
+    (cc-programming-ide))
+
+  ;; Bind c/c++ mode hooks
+  (add-hook 'c-mode-hook 'cc-programming-hooks)
+  (add-hook 'c++-mode-hook 'cc-programming-hooks)
+
+  (defun cpp-highlight-if-0/1 ()
+    "Modifies the face of text in between #if 0 ... #endif."
+    (interactive)
+
+    (setq cpp-known-face '(background-color . "dim grey"))
+    (setq cpp-unknown-face 'default)
+    (setq cpp-face-type 'dark)
+    (setq cpp-known-writable 't)
+    (setq cpp-unknown-writable 't)
+    (setq cpp-edit-list
+          '((#("1" 0 1
+               (fontified nil))
+             nil
+             (background-color . "dim grey")
+             both nil)
+            (#("0" 0 1
+               (fontified nil))
+             (background-color . "dim grey")
+             nil
+             both nil)))
+    (cpp-highlight-buffer t))
+
+  (defun jpk/c-mode-hook ()
+    (cpp-highlight-if-0/1)
+    (add-hook 'after-save-hook 'cpp-highlight-if-0/1 'append 'local))
+
+  (add-hook 'c-mode-common-hook 'jpk/c-mode-hook)
+  (add-hook 'c-mode-hook (lambda () (c-toggle-comment-style -1)))
+#+END_SRC
+** JSON-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package json-mode
+    :ensure t)
+#+END_SRC
+** HTML-mode
+#+BEGIN_SRC emacs-lisp
+  (setq-default web-mode-block-padding 2)
+  (setq-default web-mode-script-padding 2)
+  (setq-default web-mode-style-padding 2)
+#+END_SRC
+** JS-mode
+#+BEGIN_SRC emacs-lisp
+  (defun javascript-programming-hooks ()
+    (use-package js2-mode
+      :ensure t
+      :init
+      (add-hook 'js-mode-hook 'js2-minor-mode))
+    (setq js-indent-level 2))
+
+  (add-hook 'js-mode-hook 'javascript-programming-hooks)
+#+END_SRC
+** SCSS-mode
+#+BEGIN_SRC emacs-lisp
+  (defun css-programming-hooks ()
+    (setq css-indent-offset 2))
+
+  (add-hook 'css-mode-hook 'css-programming-hooks)
+#+END_SRC
+* Version-control
+#+BEGIN_SRC emacs-lisp
+  (setq-local vc-annotate-background nil)
+  (setq-local vc-annotate-color-map
+              (quote
+               ((20  . "#c82829")
+                (40  . "#f5871f")
+                (60  . "#eab700")
+                (80  . "#718c00")
+                (100 . "#3e999f")
+                (120 . "#4271ae")
+                (140 . "#8959a8")
+                (160 . "#c82829")
+                (180 . "#f5871f")
+                (200 . "#eab700")
+                (220 . "#718c00")
+                (240 . "#3e999f")
+                (260 . "#4271ae")
+                (280 . "#8959a8")
+                (300 . "#c82829")
+                (320 . "#f5871f")
+                (340 . "#eab700")
+                (360 . "#718c00"))
+               )
+              )
+  (setq-local vc-annotate-very-old-color nil)
+#+END_SRC
+#+END_SRC
